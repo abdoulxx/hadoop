@@ -1,0 +1,80 @@
+{
+  "title": "Online Retail - Batch + Streaming",
+  "uid": "online-retail-main",
+  "schemaVersion": 39,
+  "version": 1,
+  "timezone": "browser",
+  "refresh": "5s",
+  "time": { "from": "now-1h", "to": "now" },
+  "templating": {
+    "list": [
+      {
+        "name": "pays",
+        "type": "query",
+        "datasource": null,
+        "query": "SELECT DISTINCT pays FROM batch_ca_pays_mois ORDER BY pays",
+        "refresh": 2,
+        "includeAll": false,
+        "current": { "text": "United Kingdom", "value": "United Kingdom" }
+      }
+    ]
+  },
+  "panels": [
+    {
+      "id": 1,
+      "type": "stat",
+      "title": "CA net cumule (streaming, depuis demarrage)",
+      "gridPos": { "h": 6, "w": 8, "x": 0, "y": 0 },
+      "fieldConfig": { "defaults": { "unit": "currencyGBP" }, "overrides": [] },
+      "targets": [
+        { "rawSql": "SELECT ca_total FROM streaming_ca_cumule WHERE id = 1", "format": "table", "refId": "A" }
+      ]
+    },
+    {
+      "id": 2,
+      "type": "stat",
+      "title": "Lignes traitees (streaming)",
+      "gridPos": { "h": 6, "w": 4, "x": 8, "y": 0 },
+      "targets": [
+        { "rawSql": "SELECT nb_lignes FROM streaming_ca_cumule WHERE id = 1", "format": "table", "refId": "A" }
+      ]
+    },
+    {
+      "id": 3,
+      "type": "bargauge",
+      "title": "CA cumule par pays (streaming)",
+      "gridPos": { "h": 12, "w": 12, "x": 12, "y": 0 },
+      "fieldConfig": { "defaults": { "unit": "currencyGBP" }, "overrides": [] },
+      "targets": [
+        { "rawSql": "SELECT pays, ca_total FROM streaming_ca_pays ORDER BY ca_total DESC LIMIT 15", "format": "table", "refId": "A" }
+      ]
+    },
+    {
+      "id": 4,
+      "type": "table",
+      "title": "Top produits - derniere fenetre (streaming)",
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 6 },
+      "targets": [
+        {
+          "rawSql": "SELECT stock_code AS \"Code produit\", description AS \"Description\", quantite_totale AS \"Quantite\", ca_fenetre AS \"CA fenetre\" FROM streaming_top_produits WHERE window_start = (SELECT max(window_start) FROM streaming_top_produits) ORDER BY ca_fenetre DESC LIMIT 10",
+          "format": "table",
+          "refId": "A"
+        }
+      ]
+    },
+    {
+      "id": 5,
+      "type": "timeseries",
+      "title": "CA net par mois (batch, pays = $pays)",
+      "gridPos": { "h": 8, "w": 24, "x": 0, "y": 14 },
+      "fieldConfig": { "defaults": { "unit": "currencyGBP" }, "overrides": [] },
+      "targets": [
+        {
+          "rawSql": "SELECT (mois || '-01')::date AS time, ca AS \"CA net\" FROM batch_ca_pays_mois WHERE pays = '$pays' ORDER BY mois",
+          "format": "time_series",
+          "refId": "A"
+        }
+      ]
+    }
+  ]
+}

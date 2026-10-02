@@ -1,0 +1,17 @@
+apiVersion: 1
+
+datasources:
+  - name: Postgres Retail
+    type: postgres
+    access: proxy
+    url: postgres:5432
+    database: retail
+    user: retail
+    isDefault: true
+    editable: true
+    jsonData:
+      sslmode: disable
+      postgresVersion: 1600
+      timescaledb: false
+    secureJsonData:
+      password: retail
